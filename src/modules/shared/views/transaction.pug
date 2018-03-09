@@ -1,0 +1,16 @@
+mixin transaction(trx)
+    table(class="bordered")
+        thead
+        tbody
+            tr
+                td= "ID"
+                td= trx.id
+            tr
+                td= "Amount"
+                td= trx.amount
+            tr
+                td= "Status"
+                td= trx.status
+            tr
+                td= "Timestamp"
+                td= trx.timestamp

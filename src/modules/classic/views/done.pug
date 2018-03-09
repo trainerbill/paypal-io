@@ -1,0 +1,18 @@
+include ../../shared/views/header.pug
+div(class="container")
+    h3= "Congrats"
+    div(class="row")
+        div(class="col s12")
+            div(class="card")
+                span(class="card-title")= "Order Information"
+                div(class="card-content")
+                    include ../../shared/views/transaction.pug
+                    +transaction({
+                        id: TRANSACTIONID,
+                        amount: AMT,
+                        status: PAYMENTINFO_0_PAYMENTSTATUS,
+                        timestamp: ORDERTIME,
+                    })
+    
+
+include ../../shared/views/footer.pug

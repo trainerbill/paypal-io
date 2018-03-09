@@ -1,0 +1,16 @@
+mixin accountinfo(account)
+    table(class="bordered")
+        thead
+        tbody
+            tr
+                td= "Name"
+                td= `${account.fname} ${account.lname}`
+            tr
+                td= "Email"
+                td= account.email
+            tr
+                td= "Phone"
+                td= account.phone
+            tr
+                td= "Status"
+                td= account.status

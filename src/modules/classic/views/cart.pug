@@ -1,0 +1,18 @@
+include ../../shared/views/header.pug
+div(class="container")
+    h3= "Shopping Cart"
+    div(class="row")
+        div(class="col s6")
+            include ../../shared/views/items.pug
+        div(class="col s6")
+            div(class="card")
+                span(class="card-title")= "Total: $50.00"
+                div(class="card-content valign-wrapper")
+                    <a class="waves-effect waves-light btn">Checkout</a>
+                    span(style="padding-left: 10px; padding-right: 10px")= "OR"
+                    form(method="post" action="/classic/setexpresscheckout")
+                        input(type="hidden" name="amount" value="50")
+                        input(type="hidden" name="currency" value="USD")
+                        input(type="hidden" name="action" value="Sale")
+                        input(type="image" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/checkout-logo-large.png")
+include ../../shared/views/footer.pug
