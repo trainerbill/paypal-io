@@ -1,4 +1,5 @@
 include ../../shared/views/header.pug
+<script src="https://www.paypalobjects.com/api/checkout.js"></script>
 div(class="container")
     h3= "Shopping Cart"
     div(class="row")
@@ -10,9 +11,36 @@ div(class="container")
                 div(class="card-content valign-wrapper")
                     <a class="waves-effect waves-light btn">Checkout</a>
                     span(style="padding-left: 10px; padding-right: 10px")= "OR"
-                    form(method="post" action="/classic/setexpresscheckout")
-                        input(type="hidden" name="amount" value="50")
-                        input(type="hidden" name="currency" value="USD")
-                        input(type="hidden" name="action" value="Sale")
-                        input(type="image" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/checkout-logo-large.png")
+                    <div id="paypal-button-container"></div>
+                    script.
+                        paypal.Button.render({
+
+                            env: 'sandbox', // sandbox | production
+
+                            // PayPal Client IDs - replace with your own
+                            // Create a PayPal app: https://developer.paypal.com/developer/applications/create
+                            client: {
+                                sandbox:    'AZDxjDScFpQtjWTOUtWKbyN_bDt4OgqaF4eYXlewfBP4-8aqX3PiV8e1GWU6liB2CUXlkA59kJXE7M6R',
+                                production: '<insert production client id>'
+                            },
+
+                            // payment() is called when the button is clicked
+                            payment: function(data, actions) {
+                                return paypal.request.post('/classic/setexpresscheckout', {
+                                    amount: 50,
+                                    currency: 'USD',
+                                    action: 'SALE'
+                                })
+                                .then(function(response) {
+                                    return response.TOKEN;
+                                });
+                            },
+
+                            // onAuthorize() is called when the buyer approves the payment
+                            onAuthorize: function(data, actions) {
+                                actions.redirect();
+                            }
+
+                        }, '#paypal-button-container');
+
 include ../../shared/views/footer.pug

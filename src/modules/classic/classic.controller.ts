@@ -21,17 +21,32 @@ export class ClassicController {
     res.render('cart');
   }
 
+  @Get('payment')
+  payment(@Res() res) {
+    res.render('payment');
+  }
+
+  @Post('payment')
+  paymentHandler(@Req() req, @Res() res) {
+    if (req.body.paymentMethod === "paypal") {
+      return this.setExpressCheckoutRedirect(req, res);
+    } else {
+      throw new Error('Payment Method not enabled');
+    }
+    
+  }
+
   @Get('confirmation')
   async confirmation(@Req() req, @Res() res) {
     const getec = await this.getExpressCheckout(req.query.token, req.query.payerid);
     res.render('confirmation', getec);
   }
-
+  /*
   @Post('api/getexpresscheckout') 
   getExpressCheckoutApi(@Req() req) {
     return this.getExpressCheckout(req.body.token, req.body.payerid);
   }
-  
+  */
   getExpressCheckout(token, payerid) {
     return this._paypal.request('GetExpressCheckoutDetails', {
       TOKEN: token,
@@ -39,16 +54,18 @@ export class ClassicController {
     });
   }
 
+  /*
   @Post('api/setexpresscheckout')
   setExpressCheckoutApi(@Req() req, @Res() res) {
     return this.setExpressCheckout(req.body.amount, req.body.currency, req.body.action);
   }
+  */
 
   setExpressCheckout(amount, currency, action) {
     return this._paypal.request('SetExpressCheckout', {
-      'PAYMENTREQUEST_0_AMT': amount,
-      'PAYMENTREQUEST_0_CURRENCYCODE': currency,
-      'PAYMENTREQUEST_0_PAYMENTACTION': action,
+      'PAYMENTREQUEST_0_AMT': amount || 50,
+      'PAYMENTREQUEST_0_CURRENCYCODE': currency || "USD",
+      'PAYMENTREQUEST_0_PAYMENTACTION': action || "SALE",
       'RETURNURL': 'http://localhost:3000/classic/confirmation',
       'CANCELURL': 'http://localhost:3000/classic/cancelurl'
     });
@@ -57,7 +74,8 @@ export class ClassicController {
   @Post('setexpresscheckout')
   async setExpressCheckoutRedirect(@Req() req, @Res() res) {
     const response = await this.setExpressCheckout(req.body.amount, req.body.currency, req.body.action);
-    res.redirect(`https://www.${config.mode === "sandbox" ? "sandbox.paypal" : "paypal"}.com/checkoutnow?token=${response.TOKEN}`);
+    res.json(response);
+    // res.redirect(`https://www.${config.mode === "sandbox" ? "sandbox.paypal" : "paypal"}.com/checkoutnow?token=${response.TOKEN}`);
   }
 
   @Post('doexpresscheckout')
