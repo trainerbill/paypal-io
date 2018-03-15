@@ -36,6 +36,11 @@ export class ClassicController {
     
   }
 
+ @Get('cancelurl')
+ cancel(@Res() res) {
+    res.render('cancel');
+ }
+
   @Get('confirmation')
   async confirmation(@Req() req, @Res() res) {
     const getec = await this.getExpressCheckout(req.query.token, req.query.payerid);
