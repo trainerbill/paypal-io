@@ -1,5 +1,4 @@
 include ../../shared/views/header.pug
-<script src="https://www.paypalobjects.com/api/checkout.js"></script>
 div(class="container")
     h3= "Payment Page"
     form(id="payment" action="payment" method="post")
@@ -15,13 +14,12 @@ div(class="container")
                 p
                     input(type="radio" name="paymentMethod" value="creditcard" checked id="creditcard")
                     label(class="active" for="creditcard")= "Credit Card"
-                //-
-                    p
-                        input(type="radio" name="paymentMethod" value="paypal" id="paypal")
-                        label(class="active" for="paypal")= "PayPal"
+                
+                p
+                    input(type="radio" name="paymentMethod" value="paypal" id="paypal")
+                    label(class="active" for="paypal")= "PayPal"
             include ../../shared/views/creditcardform.pug
             div(id="paypal-button" style="display: none")
-            div(class="col s9" id="paypalMessage" style="display:none")= "You will be redirected to paypal when you click continue" 
             script.
                 document.getElementsByName('paymentMethod').forEach(function(ele) {
                     ele.addEventListener('change', function () {
@@ -30,21 +28,90 @@ div(class="container")
                         } else {
                            document.getElementById('ccform').style.display = 'none' 
                         }
-                        /*
+                        
                         if (this.value === 'paypal') {
-                            document.getElementById('paypalMessage').style.display = 'initial';
                             document.getElementById('paypal-button').style.display = 'initial';
                             document.getElementById('continue-button').disabled = true;
                         } else {
-                           document.getElementById('paypalMessage').style.display = 'none';
                            document.getElementById('paypal-button').style.display = 'none';
                            document.getElementById('continue-button').disabled = false;
                         }
-                        */
+                        
 
                     });
                 });
 
+                paypal.Button.render({
+                    env: 'sandbox', // sandbox | production
+                    // PayPal Client IDs - replace with your own
+                    // Create a PayPal app: https://developer.paypal.com/developer/applications/create
+                    client: {
+                        sandbox:    'ARkR7soWd2kUxFCNPHOmyb3IQhOwiL-wYhRmsRRD1SdslE0u-lCEps4LdN_KocpyEPgaWJXcsFuwd99M',
+                    },
+                    // payment() is called when the button is clicked
+                    payment: function(data, actions) {
+                        // Make a call to the REST api to create the payment
+                        return actions.payment.create({
+                            payment: {
+                                redirect_urls: {
+                                    return_url: "http://localhost:3000/scratch/confirmation",
+                                    cancel_url: "http://localhost:3000/scratch/cancel",
+                                },
+                                transactions: [
+                                    {
+                                        amount: { total: '0.01', currency: 'USD' }
+                                    }
+                                ]
+                            }
+                        });
+                    },
+                    // onAuthorize() is called when the buyer approves the payment
+                    onAuthorize: function(data, actions) {
+                        return actions.redirect();
+                    },
+                    onCancel: function(data, actions) {
+                        return actions.redirect();
+                    },
+                    onError: function(err) {
+                        alert('Error!');
+                    }
+
+                }, '#paypal-button');
+
+
+                /*
+                paypal.Button.render({
+                    env: 'sandbox',
+                    client: {
+                        sandbox:    'ARkR7soWd2kUxFCNPHOmyb3IQhOwiL-wYhRmsRRD1SdslE0u-lCEps4LdN_KocpyEPgaWJXcsFuwd99M',
+                    },
+                    payment: function(data, actions) {
+                        // Make a call to the REST api to create the payment
+                        return actions.payment.create({
+                            payment: {
+                                redirect_urls: {
+                                    return_url: "http://localhost:3000/scratch/confirmation",
+                                    cancel_url: "http://localhost:3000/scratch/cancel",
+                                },
+                                transactions: [
+                                    {
+                                        amount: { total: '0.01', currency: 'USD' }
+                                    }
+                                ]
+                            }
+                        });
+                    },
+                    onAuthorize: function(data, actions) {
+                        return actions.redirect();
+                    },
+                    onCancel: function(data, actions) {
+                        return actions.redirect();
+                    },
+                    onError: function(err) {
+                        alert('Error!');
+                    }
+                }, '#paypal-button');
+                */
                 
         div(class="row")
             div(class="col s12")

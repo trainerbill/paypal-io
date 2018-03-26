@@ -75,7 +75,13 @@ export class ScratchController {
   @Post('execute')
   async executePayment(@Body() body, @Res() res) {
     try {
-      
+      // You need to get this from your server
+      const cartTotalFromServer = '0.01';
+      const getRequest = new this._payments.PaymentGetRequest(body.payid);
+      const payment = await this._client.execute(getRequest);
+      if (payment.result.transactions[0].amount.total !== cartTotalFromServer) {
+        throw new Error('Cart total and paypal total do not match.');
+      }
       const request = new this._payments.PaymentExecuteRequest(body.payid);
       request.requestBody({
         payer_id: body.payerid
