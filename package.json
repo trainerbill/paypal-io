@@ -21,6 +21,7 @@
     "dotenv": "^5.0.1",
     "glob": "^7.1.2",
     "paypal-nvp-api": "^1.2.33",
+    "paypal-rest-sdk": "^2.0.0-rc.1",
     "pug": "^2.0.1",
     "redis": "^2.7.1",
     "reflect-metadata": "^0.1.10",

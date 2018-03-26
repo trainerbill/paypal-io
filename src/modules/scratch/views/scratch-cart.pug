@@ -1,0 +1,87 @@
+include ../../shared/views/header.pug
+div(class="container")
+    h3= "Shopping Cart"
+    div(class="row")
+        div(class="col s6")
+            include ../../shared/views/items.pug
+        div(class="col s6")
+            div(class="card")
+                span(class="card-title")= "Total: $50.00"
+                div(class="card-content valign-wrapper")
+                    <a class="waves-effect waves-light btn" href="/scratch/payment">Checkout</a>
+                    span(style="padding-left: 10px; padding-right: 10px")= "OR"
+                    <div id="paypal-button-container"></div>
+
+                    script.
+                        paypal.Button.render({
+                            env: 'sandbox', // sandbox | production
+
+                            // PayPal Client IDs - replace with your own
+                            // Create a PayPal app: https://developer.paypal.com/developer/applications/create
+                            client: {
+                                sandbox:    'ARkR7soWd2kUxFCNPHOmyb3IQhOwiL-wYhRmsRRD1SdslE0u-lCEps4LdN_KocpyEPgaWJXcsFuwd99M',
+                            },
+                            // payment() is called when the button is clicked
+                            payment: function(data, actions) {
+
+                                // Make a call to the REST api to create the payment
+                                return actions.payment.create({
+                                    payment: {
+                                        redirect_urls: {
+                                            return_url: "http://localhost:3000/scratch/confirmation",
+                                            cancel_url: "http://localhost:3000/scratch/cancel",
+                                        },
+                                        transactions: [
+                                            {
+                                                amount: { total: '0.01', currency: 'USD' }
+                                            }
+                                        ]
+                                    }
+                                });
+                            },
+
+                            // onAuthorize() is called when the buyer approves the payment
+                            onAuthorize: function(data, actions) {
+                                return actions.redirect();
+                            },
+                            onCancel: function(data, actions) {
+                                return actions.redirect();
+                            },
+                            onError: function (err) {
+                                console.log(err);
+                            }
+
+                        }, '#paypal-button-container');
+                    
+                    //-
+                        <div id="paypal-button-container"></div>
+                        script.
+                            paypal.Button.render({
+                                env: 'sandbox', // sandbox | production
+                                client: {
+                                    sandbox:    'ARkR7soWd2kUxFCNPHOmyb3IQhOwiL-wYhRmsRRD1SdslE0u-lCEps4LdN_KocpyEPgaWJXcsFuwd99M',
+                                },
+                                payment: function(data, actions) {
+                                    return actions.payment.create({
+                                        payment: {
+                                            redirect_urls: {
+                                                return_url: "http://localhost:3000/scratch/confirmation",
+                                                cancel_url: "http://localhost:3000/scratch/cancel",
+                                            },
+                                            transactions: [
+                                                {
+                                                    amount: { total: '0.01', currency: 'USD' }
+                                                }
+                                            ]
+                                        }
+                                    });
+                                },
+                                onAuthorize: function(data, actions) {
+                                    return actions.redirect();
+                                },
+                                onCancel: function(data, actions) {
+                                    return actions.redirect();
+                                }
+                            }, '#paypal-button-container');
+                    
+include ../../shared/views/footer.pug

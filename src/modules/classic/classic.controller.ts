@@ -18,12 +18,12 @@ export class ClassicController {
 
   @Get()
   root(@Res() res) {
-    res.render('cart');
+    res.render('classic-cart');
   }
 
   @Get('payment')
   payment(@Res() res) {
-    res.render('payment');
+    res.render('classic-payment');
   }
 
   @Post('payment')
@@ -44,7 +44,30 @@ export class ClassicController {
   @Get('confirmation')
   async confirmation(@Req() req, @Res() res) {
     const getec = await this.getExpressCheckout(req.query.token, req.query.payerid);
-    res.render('confirmation', getec);
+    res.render('classic-confirmation', {
+      order: {
+        amount: getec.AMT,
+        currency: getec.CURRENCYCODE,
+        token: getec.TOKEN,
+        payerid: getec.PAYERID,
+        action: 'Sale'
+      },
+      account: { 
+          email: getec.EMAIL,
+          phone: getec.PHONENUM,
+          status: getec.PAYERSTATUS,
+          fname: getec.FIRSTNAME,
+          lname: getec.LASTNAME,
+      },
+      shipping: {
+        name: getec.PAYMENTREQUEST_0_SHIPTONAME, 
+        street: getec.PAYMENTREQUEST_0_SHIPTOSTREET,
+        city: getec.PAYMENTREQUEST_0_SHIPTOCITY,
+        state: getec.PAYMENTREQUEST_0_SHIPTOSTATE,
+        postal: getec.PAYMENTREQUEST_0_SHIPTOZIP,
+        country: getec.PAYMENTREQUEST_0_SHIPTOCOUNTRYCODE
+      }
+    });
   }
   /*
   @Post('api/getexpresscheckout') 
@@ -100,6 +123,13 @@ export class ClassicController {
 
   @Get('done')
   async done(@Req() req, @Res() res) {
-    res.render('done', req.query);
+    res.render('done', {
+      transaction: {
+        id: req.query.TRANSACTIONID,
+        amount: req.query.AMT,
+        status: req.query.PAYMENTINFO_0_PAYMENTSTATUS,
+        timestamp: req.query.ORDERTIME,
+      }
+    });
   }
 }

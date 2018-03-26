@@ -1,0 +1,175 @@
+include ../../shared/views/header.pug
+div(class="container")
+    section(id="cart")
+        h3= "Shopping Cart"
+        div(class="row")
+            div(class="col s6")
+                include ../../shared/views/items.pug
+            div(class="col s6")
+                div(class="card")
+                    span(class="card-title")= "Total: $50.00"
+                    div(class="card-content valign-wrapper")
+                        <a class="waves-effect waves-light btn" href="#payment" onclick="route('payment')">Checkout</a>
+                        span(style="padding-left: 10px; padding-right: 10px")= "OR"
+                        <div id="paypal-button-container"></div>
+                        script.
+                            // Global variable to save the paypal actions for later use.
+                            var paypalActions;
+                            paypal.Button.render({
+                                env: 'sandbox', // sandbox | production
+                                client: {
+                                    sandbox:    'ARkR7soWd2kUxFCNPHOmyb3IQhOwiL-wYhRmsRRD1SdslE0u-lCEps4LdN_KocpyEPgaWJXcsFuwd99M',
+                                },
+                                payment: function(data, actions) {
+                                    return actions.payment.create({
+                                        payment: {
+                                            transactions: [
+                                                {
+                                                    amount: { total: '0.01', currency: 'USD' }
+                                                }
+                                            ]
+                                        }
+                                    });
+                                },
+                                onAuthorize: function(data, actions) {
+                                    // Save actions globally so we can execute later.
+                                    paypalActions = actions;
+                                    paypal.request.post('/spa/validate', { payid: data.paymentID })
+                                        .then(function (res) {
+                                            if (!res.valid) {
+                                                throw new Error('Amounts to not add up.');
+                                            }
+                                        });
+                                    return actions.payment.get()
+                                        .then(function (res) {
+                                            // Populate HTML with values from PayPal
+                                            document.getElementById('accountName').innerHTML = res.payer.payer_info.first_name + ' ' + res.payer.payer_info.last_name;
+                                            document.getElementById('accountEmail').innerHTML = res.payer.payer_info.email;
+                                            document.getElementById('accountPhone').innerHTML = res.payer.payer_info.phone;
+                                            document.getElementById('accountStatus').innerHTML = res.payer.status;
+                                            document.getElementById('orderAmount').innerHTML = res.transactions[0].amount.total
+                                            document.getElementById('orderCurrency').innerHTML = res.transactions[0].amount.currency
+                                            document.getElementById('addressName').innerHTML = res.payer.payer_info.first_name + ' ' + res.payer.payer_info.last_name;
+                                            document.getElementById('addressStreet').innerHTML = res.payer.payer_info.shipping_address.line1;
+                                            document.getElementById('addressCity').innerHTML = res.payer.payer_info.shipping_address.city;
+                                            document.getElementById('addressState').innerHTML = res.payer.payer_info.shipping_address.state;
+                                            document.getElementById('addressPostal').innerHTML = res.payer.payer_info.shipping_address.postal_code;
+                                            document.getElementById('addressCountry').innerHTML = res.payer.payer_info.shipping_address.country_code;
+                                            
+                                            // Change route to confirmation page
+                                            route('confirmation');
+                                        });
+                                },
+                                onCancel: function(data, actions) {
+                                    alert('You Cancelled');
+                                },
+                                onError(err) {
+                                    alert('An Error occurred');
+                                    console.log(err);
+                                }
+                            }, '#paypal-button-container');
+    section(id="payment" style="display: none")
+        h3= "Payment"
+        div(class="row")
+            div(class="col s12")
+                h4= "Shipping Address"
+                hr
+                include ../../shared/views/addressForm.pug
+        div(class="row")
+            h4= "Payment Methods"
+            hr
+            div(class="col s3")
+                p
+                    input(type="radio" name="paymentMethod" value="creditcard" checked id="creditcard")
+                    label(class="active" for="creditcard")= "Credit Card"
+                //-
+                    p
+                        input(type="radio" name="paymentMethod" value="paypal" id="paypal")
+                        label(class="active" for="paypal")= "PayPal"
+            include ../../shared/views/creditcardform.pug
+            div(id="paypal-button" style="display: none")
+            div(class="col s9" id="paypalMessage" style="display:none")= "You will be redirected to paypal when you click continue" 
+            script.
+                document.getElementsByName('paymentMethod').forEach(function(ele) {
+                    ele.addEventListener('change', function () {
+                        if (this.value === 'creditcard') {
+                            document.getElementById('ccform').style.display = 'initial'
+                        } else {
+                           document.getElementById('ccform').style.display = 'none' 
+                        }
+                        /*
+                        if (this.value === 'paypal') {
+                            document.getElementById('paypalMessage').style.display = 'initial';
+                            document.getElementById('paypal-button').style.display = 'initial';
+                            document.getElementById('continue-button').disabled = true;
+                        } else {
+                           document.getElementById('paypalMessage').style.display = 'none';
+                           document.getElementById('paypal-button').style.display = 'none';
+                           document.getElementById('continue-button').disabled = false;
+                        }
+                        */
+
+                    });
+                });
+
+                
+        div(class="row")
+            div(class="col s12")
+                a(id="continue-button" class="waves-effect waves-light btn" style="width: 100%")= "Continue"
+    section(id="confirmation" style="display: none")
+        h3= "Confirmation"
+        include ../../shared/views/confirmation-spa.pug
+        div(class="row")
+            div(class="col s12")
+                div(class="card")
+                    div(class="card-actions")
+                        a(class="waves-effect waves-light btn" style="width: 100%" onclick="executePayment()")= "Place Order"
+    section(id="done" style="display: none")
+        h3= "Done"
+        include ../../shared/views/done-spa.pug
+
+script.
+    function route(name) {
+        hideAll();
+        switch (name) {
+            case 'cart':
+                document.getElementById('cart').style.display = "initial";
+                break;
+            case 'payment':
+                document.getElementById('payment').style.display = "initial";
+                break;
+            case 'confirmation':
+                document.getElementById('confirmation').style.display = "initial";
+                break;
+            case 'done':
+                document.getElementById('done').style.display = "initial";
+                break;
+            default:
+                throw new Error('Route not setup');
+        }
+    }
+
+    function hideAll() {
+        document.getElementById('cart').style.display = "none";
+        document.getElementById('payment').style.display = "none";
+        document.getElementById('confirmation').style.display = "none";
+        document.getElementById('done').style.display = "none";
+    }
+
+    // Comment out for video
+    function executePayment() {
+        paypalActions.payment.execute()
+            .then(function (res) {
+                // insert transaction data to HTML
+                document.getElementById('transactionId').innerHTML = res.transactions[0].related_resources[0].sale.id;
+                document.getElementById('transactionStatus').innerHTML = res.transactions[0].related_resources[0].sale.state;
+                document.getElementById('transactionAmount').innerHTML = res.transactions[0].related_resources[0].sale.amount.total;
+                document.getElementById('transactionTimestamp').innerHTML = res.transactions[0].related_resources[0].sale.create_time;
+
+                // Change to done route
+                route('done');
+            })
+    }
+
+            
+include ../../shared/views/footer.pug

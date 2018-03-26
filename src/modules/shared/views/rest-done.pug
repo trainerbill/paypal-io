@@ -1,0 +1,16 @@
+include header.pug
+div(class="container")
+    h3= "Congrats"
+    div(class="row")
+        div(class="col s12")
+            div(class="card")
+                span(class="card-title")= "Order Information"
+                div(class="card-content")
+                    include transaction.pug
+                    +transaction({
+                        id: payment.id,
+                        amount: payment.amount,
+                        status: payment.status,
+                        timestamp: payment.timestamp,
+                    })
+include footer.pug

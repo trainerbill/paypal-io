@@ -1,0 +1,23 @@
+div(class="row")
+    div(class="col s12")
+        div(class="card")
+            span(class="card-title")= "PayPal Account Information"
+            div(class="card-content")
+                include paypalaccount.pug
+                +accountinfo(account)
+div(class="row")
+    div(class="col s12")
+        div(class="card")
+            span(class="card-title")= "Shipping Address"
+            div(class="card-content")
+                include address.pug
+                +address(shipping)
+
+div(class="row")
+    div(class="col s12")
+        div(class="card")
+            span(class="card-title")= "Order Information"
+            div(class="card-content")
+                include order.pug
+                +order(order)
+    

@@ -7,12 +7,7 @@ div(class="container")
                 span(class="card-title")= "Order Information"
                 div(class="card-content")
                     include ../../shared/views/transaction.pug
-                    +transaction({
-                        id: TRANSACTIONID,
-                        amount: AMT,
-                        status: PAYMENTINFO_0_PAYMENTSTATUS,
-                        timestamp: ORDERTIME,
-                    })
+                    +transaction(transaction)
     
 
 include ../../shared/views/footer.pug

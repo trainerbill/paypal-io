@@ -1,0 +1,53 @@
+include ../../shared/views/header.pug
+<script src="https://www.paypalobjects.com/api/checkout.js"></script>
+div(class="container")
+    h3= "Payment Page"
+    form(id="payment" action="payment" method="post")
+        div(class="row")
+            div(class="col s12")
+                h4= "Shipping Address"
+                hr
+                include ../../shared/views/addressForm.pug
+        div(class="row")
+            h4= "Payment Methods"
+            hr
+            div(class="col s3")
+                p
+                    input(type="radio" name="paymentMethod" value="creditcard" checked id="creditcard")
+                    label(class="active" for="creditcard")= "Credit Card"
+                //-
+                    p
+                        input(type="radio" name="paymentMethod" value="paypal" id="paypal")
+                        label(class="active" for="paypal")= "PayPal"
+            include ../../shared/views/creditcardform.pug
+            div(id="paypal-button" style="display: none")
+            div(class="col s9" id="paypalMessage" style="display:none")= "You will be redirected to paypal when you click continue" 
+            script.
+                document.getElementsByName('paymentMethod').forEach(function(ele) {
+                    ele.addEventListener('change', function () {
+                        if (this.value === 'creditcard') {
+                            document.getElementById('ccform').style.display = 'initial'
+                        } else {
+                           document.getElementById('ccform').style.display = 'none' 
+                        }
+                        /*
+                        if (this.value === 'paypal') {
+                            document.getElementById('paypalMessage').style.display = 'initial';
+                            document.getElementById('paypal-button').style.display = 'initial';
+                            document.getElementById('continue-button').disabled = true;
+                        } else {
+                           document.getElementById('paypalMessage').style.display = 'none';
+                           document.getElementById('paypal-button').style.display = 'none';
+                           document.getElementById('continue-button').disabled = false;
+                        }
+                        */
+
+                    });
+                });
+
+                
+        div(class="row")
+            div(class="col s12")
+                input(id="continue-button" type="submit" class="waves-effect waves-light btn" style="width: 100%" value="Continue")
+
+include ../../shared/views/footer.pug
