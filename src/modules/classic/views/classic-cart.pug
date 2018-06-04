@@ -10,39 +10,91 @@ div(class="container")
                 div(class="card-content valign-wrapper")
                     <a class="waves-effect waves-light btn" href="/classic/payment">Checkout</a>
                     span(style="padding-left: 10px; padding-right: 10px")= "OR"
-                    <div id="paypal-button-container"></div>
+                    <div id="paypal-button"></div>
+                    
+                      
+                    form(id="paypalForm" method="get" action="/classic/setexpresscheckout")
+                        input(type="hidden" name="amount" value="50")
+                        input(type="hidden" name="currency" value="USD")
+                        input(type="hidden" name="action" value="Sale")
+                        input(type="image" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/checkout-logo-large.png")
+
+                    <a id="paypalLink" href="/classic/setexpresscheckout">
+                        <img src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/checkout-logo-large.png"/>
+                    </a>
+
                     script.
-                        paypal.Button.render({
-
-                            env: 'sandbox', // sandbox | production
-
-                            // payment() is called when the button is clicked
-                            payment: function(data, actions) {
-                                return paypal.request.post('/classic/setexpresscheckout', {
-                                    amount: 50,
-                                    currency: 'USD',
-                                    action: 'Sale',
-                                })
-                                .then(function (response) {
-                                    return response.TOKEN;
-                                });
-                            },
-
-                            // onAuthorize() is called when the buyer approves the payment
-                            onAuthorize: function(data, actions) {
-                                return actions.redirect();
-                            },
-
-                            onCancel: function (data, actions) {
-                                return actions.redirect();
+                        (function() {
+                            // Change me!
+                            var currentIntegrationId = 'paypalLink'; // DOM id of your current integration.
+                            var integrationType = "LINK";  // Set to FORM or LINK
+                            var newIntegrationId = "paypal-button"; // DOM id of the new integration container where the button renders
+                            var errorCallback = function (error) {
+                                return alert('There was an error');
                             }
 
-                        }, '#paypal-button-container');
-                    //-
-                        form(method="post" action="/classic/setexpresscheckout")
-                            input(type="hidden" name="amount" value="50")
-                            input(type="hidden" name="currency" value="USD")
-                            input(type="hidden" name="action" value="Sale")
-                            input(type="image" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/checkout-logo-large.png")
-                    
+                            // You should not have to change anything below
+
+                            function formEncode(form) {
+                                var ret = {};
+                                Object.keys(form.elements).forEach(function (key) {
+                                    ret[form.elements[key].name] = form.elements[key].value;
+                                });
+                                return ret;
+                            }
+                            var currentIntegration = document.getElementById(currentIntegrationId);
+                            currentIntegration.style.display = "none";
+                            paypal.Button.render({
+                                env: 'sandbox', // Or 'sandbox',
+                                payment: function(data, actions) {
+                                    var paypalRequest;
+                                    if (integrationType === "FORM") {
+                                        if (currentIntegration.getAttribute('method').toLowerCase() === 'post') {
+                                            paypalRequest = paypal.request.post(currentIntegration.getAttribute('action'), formEncode(currentIntegration), {
+                                                headers: {
+                                                    'Accept': 'application/paypal-json-token',
+                                                }
+                                            });
+                                        } else if (currentIntegration.getAttribute('method').toLowerCase() === 'get') {
+                                            var formObj = formEncode(currentIntegration);
+                                            var queryString = Object.keys(formObj).map(function(key) {
+                                                return key + '=' + formObj[key]
+                                            }).join('&');
+                                            paypalRequest = paypal.request.get(currentIntegration.getAttribute('action') + '?' + queryString, {
+                                                headers: {
+                                                    'Accept': 'application/paypal-json-token',
+                                                }
+                                            });
+                                        }
+                                    } else if (integrationType === 'LINK') {
+                                        paypalRequest = paypal.request.get(currentIntegration.getAttribute('href'), {
+                                            headers: {
+                                                'Accept': 'application/paypal-json-token',
+                                            }
+                                        });
+                                    }
+
+                                    return paypalRequest
+                                        .then(function (response) {
+                                            if (!response || !response.token) {
+                                                throw new Error('There was an error fetching the PayPal token');
+                                            }
+                                            return response.token;
+                                        })
+                                        .catch(function (err) {
+                                            // throw the error to the onError callback
+                                            throw err;
+                                        });
+                                    
+                                },
+                                onAuthorize: function(data, actions) {
+                                    return actions.redirect();
+                                },
+                                onCancel: function (data, actions) {
+                                    return actions.redirect();
+                                },
+                                onError: errorCallback
+
+                            }, '#' + newIntegrationId);
+                        })();
 include ../../shared/views/footer.pug

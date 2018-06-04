@@ -102,8 +102,13 @@ export class ClassicController {
   @Post('setexpresscheckout')
   async setExpressCheckoutRedirect(@Req() req, @Res() res) {
     const response = await this.setExpressCheckout(req.body.amount, req.body.currency, req.body.action);
-    res.json(response);
-    // res.redirect(`https://www.${config.mode === "sandbox" ? "sandbox.paypal" : "paypal"}.com/checkoutnow?token=${response.TOKEN}`);
+    res.redirect(`https://www.${config.mode === "sandbox" ? "sandbox.paypal" : "paypal"}.com/checkoutnow?token=${response.TOKEN}`);
+  }
+
+  @Get('setexpresscheckout')
+  async setExpressCheckoutRedirectGet(@Req() req, @Res() res) {
+    const response = await this.setExpressCheckout('10', 'USD', 'sale');
+    res.redirect(`https://www.${config.mode === "sandbox" ? "sandbox.paypal" : "paypal"}.com/checkoutnow?token=${response.TOKEN}`);
   }
 
   @Post('doexpresscheckout')
